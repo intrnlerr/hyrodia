@@ -27,7 +27,7 @@ enum class VertexType {
 }
 
 data class VertexPosition(val position: HexPosition, val vertexType: VertexType) {
-    fun hexNeighbors(): Array<HexPosition> {
+    fun adjacentHexagons(): Array<HexPosition> {
         return when (vertexType) {
             VertexType.Top -> arrayOf(position, position.northEast(), position.northWest())
             VertexType.Bottom -> arrayOf(position, position.southEast(), position.southWest())
@@ -70,7 +70,7 @@ enum class EdgeType {
 }
 
 data class EdgePosition(val position: HexPosition, val edgeType: EdgeType) {
-    fun vertexNeighbors(): Array<VertexPosition> {
+    fun adjacentVertices(): Array<VertexPosition> {
         return when (edgeType) {
             EdgeType.West -> arrayOf(
                 VertexPosition(position.northWest(), VertexType.Bottom),
@@ -81,6 +81,29 @@ data class EdgePosition(val position: HexPosition, val edgeType: EdgeType) {
             )
             EdgeType.NorthEast -> arrayOf(
                 VertexPosition(position, VertexType.Top), VertexPosition(position.northEast(), VertexType.Bottom)
+            )
+        }
+    }
+
+    fun adjacentEdges(): Array<EdgePosition> {
+        return when (edgeType) {
+            EdgeType.West -> arrayOf(
+                EdgePosition(position, EdgeType.NorthWest),
+                EdgePosition(position.west(), EdgeType.NorthEast),
+                EdgePosition(position.southWest(), EdgeType.NorthEast),
+                EdgePosition(position.southWest(), EdgeType.NorthWest),
+            )
+            EdgeType.NorthWest -> arrayOf(
+                EdgePosition(position, EdgeType.West),
+                EdgePosition(position, EdgeType.NorthEast),
+                EdgePosition(position.west(), EdgeType.NorthEast),
+                EdgePosition(position.northEast(), EdgeType.West),
+            )
+            EdgeType.NorthEast -> arrayOf(
+                EdgePosition(position, EdgeType.NorthWest),
+                EdgePosition(position.east(), EdgeType.West),
+                EdgePosition(position.east(), EdgeType.NorthWest),
+                EdgePosition(position.northEast(), EdgeType.West),
             )
         }
     }
@@ -95,5 +118,23 @@ class World {
     fun canPlaceTown(town_pos: VertexPosition, player: Player): Boolean {
         return town_pos.adjacentEdges().any { edge -> roads[edge] == player } && town_pos.adjacentVertices()
             .all { vertex -> !towns.containsKey(vertex) }
+    }
+
+    fun canPlaceRoad(road_pos: EdgePosition, player: Player): Boolean {
+        return !roads.containsKey(road_pos) && (road_pos.adjacentEdges()
+            .any { edge -> roads[edge] == player } || road_pos.adjacentVertices()
+            .any { vertex -> towns[vertex]?.owner == player })
+    }
+
+    fun updatePlayerResources(roll: Int) {
+        for ((pos, town) in towns) {
+            for ((x, y) in pos.adjacentHexagons()) {
+                val tile = getTile(x, y)
+                if (tile.roll == roll) {
+                    val amount = if (town.is_city) 2u else 1u
+                    town.owner.resources.compute(tile.resource_type) { _, num -> (num ?: 0u) + amount }
+                }
+            }
+        }
     }
 }
