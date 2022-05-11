@@ -1,3 +1,5 @@
+package com.hyrodia
+
 import kotlin.random.Random
 
 enum class ResourceType {
@@ -13,6 +15,7 @@ fun getTile(x: Int, y: Int): Tile {
     return Tile(resource, roll)
 }
 
+@kotlinx.serialization.Serializable
 data class HexPosition(val x: Int, val y: Int) {
     fun northWest() = HexPosition(x - 1, y + 1)
     fun northEast() = HexPosition(x, y + 1)
@@ -26,6 +29,7 @@ enum class VertexType {
     Top, Bottom,
 }
 
+@kotlinx.serialization.Serializable
 data class VertexPosition(val position: HexPosition, val vertexType: VertexType) {
     fun adjacentHexagons(): Array<HexPosition> {
         return when (vertexType) {
@@ -69,6 +73,7 @@ enum class EdgeType {
     West, NorthWest, NorthEast
 }
 
+@kotlinx.serialization.Serializable
 data class EdgePosition(val position: HexPosition, val edgeType: EdgeType) {
     fun adjacentVertices(): Array<VertexPosition> {
         return when (edgeType) {
@@ -112,8 +117,8 @@ data class EdgePosition(val position: HexPosition, val edgeType: EdgeType) {
 class Town(val owner: Player, val is_city: Boolean)
 
 class World {
-    private val roads: Map<EdgePosition, Player> = HashMap()
-    private val towns: Map<VertexPosition, Town> = HashMap()
+    private val roads: MutableMap<EdgePosition, Player> = HashMap()
+    private val towns: MutableMap<VertexPosition, Town> = HashMap()
 
     fun canPlaceTown(town_pos: VertexPosition, player: Player): Boolean {
         return town_pos.adjacentEdges().any { edge -> roads[edge] == player } && town_pos.adjacentVertices()
@@ -136,5 +141,9 @@ class World {
                 }
             }
         }
+    }
+
+    fun placeTown(where: VertexPosition, who: Player) {
+        towns[where] = Town(who, false)
     }
 }
