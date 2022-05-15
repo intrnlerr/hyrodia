@@ -5,22 +5,25 @@ import kotlin.random.Random
 class Game(val players: Array<Player>) {
     val world = World()
     var turnNumber: Int = 0
+    var playerNeedsRoll = true
     var inSetupPhase = false
 
     fun doDiceRoll(who: Player) {
-        if (players[turnNumber] != who) {
+        if (players[turnNumber] != who || !playerNeedsRoll) {
             return
         }
         val roll = Random.nextInt(1, 7) + Random.nextInt(1, 7)
+        println("rolled dice for $roll")
         if (roll == 7) {
             // TODO: move the thief & steal resources
         } else {
             world.updatePlayerResources(roll)
         }
+        playerNeedsRoll = false
     }
 
     suspend fun tryPlaceCity(who: Player, where: VertexPosition) {
-        if (players[turnNumber] != who) {
+        if (players[turnNumber] != who || playerNeedsRoll) {
             return
         }
         if (inSetupPhase) {
@@ -40,6 +43,7 @@ class Game(val players: Array<Player>) {
             return
         }
         turnNumber = (turnNumber + 1) % players.size
+        playerNeedsRoll = true
     }
 
 }

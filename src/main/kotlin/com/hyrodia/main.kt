@@ -17,6 +17,7 @@ fun main() {
         routing {
             val openLobbies = ArrayList<Lobby>()
             webSocket("/") {
+                println("player joined")
                 val me = Player(this)
                 // TODO: implement some way to create a lobby or join an existing lobby
                 if (openLobbies.isEmpty()) {
@@ -32,8 +33,9 @@ fun main() {
                             "start" -> {
                                 val lobby = openLobbies.first()
                                 if (lobby.isLeader(me)) {
+                                    println("game started")
                                     openLobbies.removeFirst()
-                                    launch { lobby.create() }
+                                    lobby.create()
                                 }
                             }
                             // FIXME: race conditions are likely here (: this should probably using channels
@@ -49,6 +51,10 @@ fun main() {
                         }
                     }
                 }
+                println("player leave")
+                if (me.game == null) {
+                    openLobbies.first().players.remove(me)
+                }
             }
         }
     }.start(wait = true)
@@ -58,7 +64,7 @@ fun main() {
 data class GamePacket(val action: String, val cityPos: VertexPosition? = null, val roadPos: EdgePosition? = null)
 
 class Lobby(leader: Player) {
-    val players: ArrayList<Player> = ArrayList()
+    val players: MutableSet<Player> = HashSet()
 
     init {
         players.add(leader)
