@@ -1,18 +1,26 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="hyrodia.css" type = "text/css"></link>
-<home>
+<html>
     <head>
-        <header class="header"><b>Hyrodia</b></header>
+        <link rel="stylesheet" href="hyrodia.css" type = "text/css"></link>
     </head>
     <body>
+        <header class="header"><b>Hyrodia</b></header>
+
         <button id="startlobby">start game</button>
         <button id="rolldice">roll dice</button>
         <div class="iframe">
         <!-- contet goes here -->
         </div>
+        <svg id="svgbuddy" viewbox="0 0 100 100" style="width: 20em;">
+            <defs>
+                <polygon id="hex" points="5,0 10,2.5, 10,7.5 5,10 0,7.5, 0,2.5" fill="none" stroke="black" stroke-width = "0.5" />
+            </defs>
+            <use href="#hex" x="10" />
+        </svg>
         <script src="game.js"></script>
+        <footer>
+            <a href="www.caelem.ca">copyright caelem.ca 2017-2022</a>   
+            </footer>
     </body>
-    <footer>
-    <a href="www.caelem.ca">copyright caelem.ca 2017-2022</a>   
-    </footer>
-</home>
+    
+</html>
